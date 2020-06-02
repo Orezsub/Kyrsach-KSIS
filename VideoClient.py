@@ -19,7 +19,7 @@ from PyQt5.QtGui import QPixmap, QImage
 class Communicate(QObject):
 	new_message = pyqtSignal()
 
-class App(QMainWindow):
+class VideoSocket(QMainWindow):
 	def __init__(self):
 		super().__init__()
 
@@ -119,7 +119,7 @@ class App(QMainWindow):
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
-	ex = App()
+	ex = VideoSocket()
 	ex.show()
 
 	time.sleep(5)
