@@ -32,7 +32,7 @@ class VideoSocket(QMainWindow):
 		self.label = QLabel(self)
 		self.first_frame = True
 
-		self.scale_percent = 40 # Процент от изначального размера
+		self.scale_percent = 40
 
 		self.shutdown_sending = False
 		self.shutdown_receiving = False

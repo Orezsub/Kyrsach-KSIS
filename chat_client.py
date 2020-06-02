@@ -31,43 +31,26 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.ACCEPT_CALL = 'ac_call'
 		self.CANCEL_CALL = 'ce_call'
 		self.SET_LADDR = 's_laddr'
-		self.AUDIO = 'audio'
-		# self.NEW_CONTENT = 'new_content'
-		# self.DEL_CONTENT = 'del_content'
 		self.ARROW = '-->'
 		self.HISTORY = 'history'
 		self.HISTORY_START = 'history_start'
 		self.HISTORY_END = 'history_end'
 		self.HISTORY_REQUEST = 'history_request'
 		self.ACTIVE_CLIENTS = 'active_clients'
-		# self.LOADED_CONTENT = 'loaded_content'
-		# self.UPLOAD_FILE = 'upload_file'
 
 		self.BASE_COLOR = '#F0F0F0'
 		self.RED_COLOR = '#DB4747'
 
 		self.clients = [self.GLOBAL]
 		self.dialog_button_dict = {}
-		# self.upload_files_button_dict = {}
-		# self.download_files_button_dict = {}
 		self.message_list = []
-		# self.upload_file_list = []
-		# self.download_file_list = []
-		# self.content_info = []
-		# self.sender_info = ''
-		
+
 		self.signal = Communicate()
 		self.signal.new_message.connect(self.new_message)
-		# self.signal.new_audio.connect(self.new_audio)
-		# self.signal.new_content.connect(self.new_content_signal)
-		# self.signal.enable_button.connect(self.enable_button)
-		# self.signal.show_message.connect(self.show_message)
 		self.recipient_address = self.GLOBAL
 
 
 		self.dialog_layout = self.set_layout_with_scroll_area(self.ui.verticalLayout, self.ui.scrollArea)
-		# self.upload_file_layout = self.set_layout_with_scroll_area(self.ui.horizontalLayout, self.ui.scrollArea_2)
-		# self.download_file_layout = self.set_layout_with_scroll_area(self.ui.verticalLayout_2, self.ui.scrollArea_3)
 		self.find_server()
 		self.log_in()
 
@@ -100,7 +83,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
 				self.change_dialog_button_color(button, self.BASE_COLOR)
 				self.display_all_messages_from_sender(address)
-				# self.display_all_files_from_sender(address)
 				break
 
 
@@ -171,10 +153,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		button.clicked.connect(self.cancel_incomming_call)
 		self.message_box.addButton(button, QtWidgets.QMessageBox.RejectRole)
 
-		# button = Qt.QPushButton('Info')
-		# button.clicked.connect(self.show_file_info)
-		# message_box.addButton(button, QtWidgets.QMessageBox.ActionRole)
-
 		self.message_box.exec_()
 
 	def accept_incomming_call(self):
@@ -185,85 +163,12 @@ class MainWindow(QtWidgets.QMainWindow):
 		
 		self.audio_socket.start_sending(self.incomming_addr)
 		self.audio_socket.start_receiving()
-		# p = pyaudio.PyAudio()
-		# CHUNK = 1024
-		# CHANNELS = 1
-		# RATE = 22100
-		# WIDTH = 2
-		# self.recv_audio_stream = p.open(format=p.get_format_from_width(WIDTH), channels=CHANNELS, rate=RATE,\
-		# 					 output=True, frames_per_buffer=CHUNK)
-		# print('send')
-	# sender = self.sender_info
-	# for button, file_id in self.download_files_button_dict.items():
-	# 	if sender == button:
-
-	# 		for download_file_info in self.download_file_list:
-	# 			if download_file_info[2] == file_id:
-	# 				file_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', f'/home/{download_file_info[3]}')[0]
-
-	# 				if file_path:
-	# 					response = self.HTTP_client.download_file(file_id, file_path)
-	# 					self.check_errors_in_response(response)
-	# 					break
-
-
-	# def show_message(self):
-	# 	self.show_message_box(self.content_info[0])
-
-
-	# def show_message_box(self, info):
-	# 	message_box = QtWidgets.QMessageBox.information(self, 'title', info)
 
 
 	def cancel_incomming_call(self):
 		self.shutdown_incomming_call = True
 		self.message_box.setParent(None)
 		self.send_message_to_server(self.CANCEL_CALL, self.recipient_address, 'canceled call', False)
-		# sender = self.sender_info
-		# for button, file_id in self.download_files_button_dict.items():
-		# 	if sender == button:	
-		# 		button.setParent(None)
-		# 		deleted_button = button
-
-		# 		for download_file_info in self.download_file_list:
-		# 			if download_file_info[2] == file_id:
-		# 				response = self.HTTP_client.delete_download_file(file_id)
-
-		# 				if self.check_errors_in_response(response):
-		# 					content = f'†{file_id}†{download_file_info[3]}'
-
-		# 					self.send_message_to_server(self.DEL_CONTENT, self.recipient_address, \
-		# 								f'delete -> @{download_file_info[3]}', True, content)
-		# 					self.download_file_list.remove(download_file_info)
-		# 					break
-		# 		break
-
-	# 	self.download_files_button_dict.pop(deleted_button)
-
-
-	# def if_any_content_info_in_message(self, mtype, sender, recipient, content):
-	# 	if mtype == self.NEW_CONTENT:
-	# 		for i in range(0, len(content), 2):
-	# 			file_basename = content[i+1]
-	# 			if recipient == self.recipient_address:
-	# 				self.add_button_into_layout(file_basename, self.download_file_layout, \
-	# 													self.download_files_button_dict, content[i], self.show_context_menu)
-
-	# 			self.download_file_list.append([sender, recipient, content[i], content[i+1]])
-
-	# 	elif mtype == self.DEL_CONTENT:
-	# 		for i in range(0, len(content), 2):
-	# 			for download_file_info in self.download_file_list:
-	# 				if download_file_info[2] == content[i]:
-
-	# 					for button, file_id in self.download_files_button_dict.items():
-	# 						if file_id == content[i]:
-	# 							button.setParent(None)
-	# 							self.download_files_button_dict.pop(button)
-	# 							break
-
-	# 					self.download_file_list.remove(download_file_info)
-	# 					break
 
 
 	def display_all_messages_from_sender(self, recipient_address):
@@ -291,32 +196,6 @@ class MainWindow(QtWidgets.QMainWindow):
 					self.ui.TEdit_Chat_Text.append(f'{message[2]}')
 
 
-	# def display_all_files_from_sender(self, recipient_address):
-	# 	for button, file_id in self.download_files_button_dict.items():
-	# 			button.setParent(None)
-	# 	self.download_files_button_dict.clear()
-
-	# 	if recipient_address == self.GLOBAL:
-	# 		for download_file_info in self.download_file_list:
-
-	# 			if download_file_info[1] == recipient_address:
-	# 				file_basename = download_file_info[3]
-	# 				self.add_button_into_layout(file_basename, self.download_file_layout, \
-	# 									self.download_files_button_dict, download_file_info[2], self.show_context_menu)
-
-	# 	else:
-	# 		for download_file_info in self.download_file_list:
-
-	# 			if download_file_info[1] == recipient_address:
-	# 				file_basename = download_file_info[3]
-	# 				self.add_button_into_layout(file_basename, self.download_file_layout, \
-	# 									self.download_files_button_dict, download_file_info[2], self.show_context_menu)
-
-	# 			elif download_file_info[0] == recipient_address and download_file_info[1] != self.GLOBAL:
-	# 				file_basename = download_file_info[3]
-	# 				self.add_button_into_layout(file_basename, self.download_file_layout, \
-	# 									self.download_files_button_dict, download_file_info[2], self.show_context_menu)
-
 	def thread_incomming_call(self):
 		while not self.shutdown_incomming_call:
 			try:
@@ -326,46 +205,6 @@ class MainWindow(QtWidgets.QMainWindow):
 					time.sleep(1)
 			except:
 				self.shutdown_incomming_call = True
-
-
-	# def thread_audio_sending(self, name, recipient):
-	# 	print('start listen')
-	# 	CHUNK = 1024
-	# 	FORMAT = pyaudio.paInt16
-	# 	CHANNELS = 1
-	# 	RATE = 12100
-	# 	while not self.shutdown_send_audio:
-	# 		# try:
-	# 			# while not self.shutdown_send_audio:
-					
-	# 		p = pyaudio.PyAudio()
-
-	# 		stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
-	# 		data  = stream.read(CHUNK)
-	# 		dataChunk = array('h', data)
-	# 		vol = max(dataChunk)
-	# 		if(vol > 500):
-	# 			# print("Recording Sound...")
-	# 			# self.audio_socket.send_audio(recipient, data, len(data))
-	# 			print('send audio')
-	# 			self.audio_socket.sendall(data)
-	# 			# s.sendall(data[:2000])
-	# 			# print(len(data))
-	# 		# else:
-	# 			# print("Silence..")
-					
-	# 		# except:
-	# 			# self.shutdown_send_audio = True
-	# 			# stream.stop_stream()
-	# 			# stream.close()
-	# 			# p.terminate()
-	# 	print('stop listen')
-
-
-	# def new_audio(self):
-	# 	print('data')
-	# 	# data = self.audio_socket.get_new_message()
-	# 	# self.recv_audio_stream.write(data[5:])
 
 
 	def check_system_message(self, data):
@@ -396,17 +235,6 @@ class MainWindow(QtWidgets.QMainWindow):
 					self.clients.append(data[i+1])
 			return True
 
-		# elif data[0] == self.LOADED_CONTENT:
-		# 	if len(data) != 2:
-		# 		for i in reversed(range(len(self.download_file_list))):
-		# 			if self.download_file_list[i][1] == self.GLOBAL:
-		# 				del self.download_file_list[i] 
-
-		# 		for i in range(1, len(data), 4):
-		# 			self.download_file_list.append([data[i], data[i+1], data[i+2], data[i+3]])
-		# 		self.display_all_files_from_sender(self.GLOBAL)
-		# 	return True
-
 		return False
 
 
@@ -423,17 +251,9 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.incomming_addr = data[4]
 			self.audio_socket.start_sending(self.incomming_addr)
 			self.audio_socket.start_receiving()
-			# self.shutdown_send_audio = False
-			# Thread_audio_send = threading.Thread(target=self.thread_audio_sending,
-			# 												args=('audio', self.recipient_address), daemon = True)
-			# Thread_audio_send.start()
 			return True
 
 		elif data[0] == self.CANCEL_CALL:
-			return True
-
-		elif data[0] == self.AUDIO:
-			# data = conn.recv(CHUNK)
 			return True
 
 		return False
@@ -449,11 +269,9 @@ class MainWindow(QtWidgets.QMainWindow):
 				recipient = data[2]
 				client_name = data[3]
 				message = data[3]+data[4]
-				# content = data[5:]
 
 				self.add_dialog_button_if_no_such(sender, client_name)
 				self.if_any_connect_or_disconnect(mtype, sender, client_name)
-				# self.if_any_content_info_in_message(mtype, sender, recipient, content)
 				self.append_new_message_into_chat(sender, recipient, message)
 
 				self.message_list.append([sender, recipient, message])
@@ -462,10 +280,6 @@ class MainWindow(QtWidgets.QMainWindow):
 				self.find_dialog_button_for_change_color(sender, recipient)	
 			except:
 				pass
-
-	# def new_content_signal(self):
-	# 	self.add_button_into_layout(self.content_info[0], self.content_info[1], \
-	# 									self.content_info[2], self.content_info[3], self.content_info[4])
 
 
 	def find_server(self):
@@ -512,41 +326,11 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.script_for_mas_os()
 
 
-	# def view_upload_files(self):
-	# 	for upload_file_info in self.upload_file_list:
-	# 		file_basename = upload_file_info[1]
-	# 		self.add_button_into_layout(file_basename, self.download_file_layout, \
-	# 							self.download_files_button_dict, upload_file_info[0], self.show_context_menu)
-
-	# 		self.download_file_list.append([self.ARROW, self.recipient_address, upload_file_info[0], upload_file_info[1]])
-
-
-	# def clear_upload_file_layout(self):
-	# 	for button, file_id in self.upload_files_button_dict.items():
-	# 		button.setParent(None)
-
-	# 	self.upload_file_list.clear()
-	# 	self.upload_files_button_dict.clear()
-
-
 	def prepare_and_send_message(self):	
 		message = self.ui.TEdit_Input_Message.toPlainText()
 
 		if message:
 			self.send_message_to_server(self.MESSAGE, self.recipient_address, message, True)
-
-		# if len(self.upload_file_list) != 0:
-		# 	content_info = ''
-		# 	content_name = 'upload ->'
-		# 	for upload_file in self.upload_file_list:
-		# 		content_info += f'†{upload_file[0]}†{upload_file[1]}'
-		# 		content_name += f' @{upload_file[1]}'
-
-		# 	self.send_message_to_server(self.NEW_CONTENT, self.recipient_address, content_name, True, content_info)
-
-		# 	self.view_upload_files()
-		# 	self.clear_upload_file_layout()
-		# 	self.HTTP_client.clear_download_buffer()
 
 
 	def send_message_to_server(self, mtype, recipient, message, print_message):#, content='†'):
@@ -618,74 +402,10 @@ class MainWindow(QtWidgets.QMainWindow):
 	# 	self.signal.enable_button.emit()
 
 
-	def upload_file_button_click(self):
+	def call_recipient_button_click(self):
 		
 		if self.recipient_address != self.GLOBAL:
 			self.send_message_to_server(self.INCOMMING_CALL, self.recipient_address, 'incomming call', False)
-
-			# time.sleep(1)
-			
-			# host = self.ui.Edit_IP.text()
-			# port = int(self.ui.Edit_Port.text())+1
-
-			# self.audio_socket.set_host_and_port(host, 50008)
-			# self.audio_socket.set_client_name(self.ui.Edit_Name.text())
-			# self.audio_socket.connect('audio')
-		# else:
-		# 	self.shutdown_send_audio = False
-		# 	Thread_audio_send = threading.Thread(target=self.thread_audio_sending,
-		# 													args=('audio', self.recipient_address), daemon = True)
-		# 	Thread_audio_send.start()
-		# self.ui.Btn_Send_Message.setDisabled(True)
-		# file_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', '/home')[0]
-		# threading.Thread(target=self.upload_file_thread,args=(self.UPLOAD_FILE, file_path), daemon=True).start()
-
-
-	# def get_basename(self, file_path):
-	# 	return path.basename(file_path)
-
-
-	# def delete_upload_file(self):
-	# 	sender = self.sender()
-	# 	for button, file_id in self.upload_files_button_dict.items():
-	# 		if sender == button:
-				
-	# 			response = self.HTTP_client.delete_upload_file(file_id)
-	# 			if self.check_errors_in_response(response):
-	# 				button.setParent(None)
-
-	# 				self.upload_files_button_dict.pop(button)
-
-	# 				for upload_file_info in self.upload_file_list:
-	# 					if upload_file_info[0] == file_id:
-	# 						self.upload_file_list.remove(upload_file_info)
-	# 						break
-	# 				break
-
-
-
-
-
-	# def show_file_info(self):
-	# 	sender = self.sender_info
-	# 	for button, file_id in self.download_files_button_dict.items():
-	# 		if sender == button:
-
-	# 			for download_file_info in self.download_file_list:
-	# 				if download_file_info[2] == file_id:
-
-	# 					response = self.HTTP_client.get_info_about_file(file_id, download_file_info[3])
-	# 					if self.check_errors_in_response(response):
-	# 						self.show_message_box(response[2])
-
-
-	# def check_errors_in_response(self, response):
-	# 	if response[0] != 200 and response[1] != 'OK':
-	# 		self.content_info = [f'ERROR {response[0]}\n{response[1]}\n{response[2]}']
-	# 		self.signal.show_message.emit()
-	# 		return False
-
-	# 	return True
 
 
 	def change_active_dialog(self):
@@ -699,16 +419,9 @@ class MainWindow(QtWidgets.QMainWindow):
 	def set_TCP_socket(self, socket):
 		self.TCP_socket = socket
 
+
 	def set_audio_socket(self, audio_socket):
 		self.audio_socket = audio_socket
-		# self.audio_socket = ss.socket(ss.AF_INET, ss.SOCK_STREAM)
-		# self.audio_socket.connect(("192.168.100.2", 50009))
-
-	# def set_HTTP_client(self, client):
-	# 	self.HTTP_client = client
-	# 	self.HTTP_client.connect_to_server('',8000)
-	# 	response = self.HTTP_client.initialization()
-	# 	self.check_errors_in_response(response)
 
 
 	def script_for_mas_os(self):
@@ -728,7 +441,6 @@ if __name__ == "__main__":
 	from UDPConnection import UDPConnection
 	from TCPConnection import TCPConnection
 	from AudioClient import AudioSocketClient
-	# import HTTPClient
 	from time import gmtime, strftime
 	from playsound import playsound
 
@@ -742,15 +454,13 @@ if __name__ == "__main__":
 
 	audio_socket = AudioSocketClient()
 	application.set_audio_socket(audio_socket)
-	# HTTP_client = HTTPClient.HttpClient()
-	# application.set_HTTP_client(HTTP_client)
 
 	application.ui.Btn_Find_Server.clicked.connect(application.find_server)
 	application.ui.Btn_Log_In.clicked.connect(application.log_in)
 	application.ui.Btn_Send_Message.clicked.connect(application.prepare_and_send_message)
 	application.ui.Btn_Log_Out.clicked.connect(application.log_out)
 	application.ui.Btn_History_Request.clicked.connect(application.history_request)
-	application.ui.Btn_Upload_File.clicked.connect(application.upload_file_button_click)
+	application.ui.Btn_Upload_File.clicked.connect(application.call_recipient_button_click)
 	application.ui.ComboBox_Of_Clients.currentIndexChanged.connect(application.change_active_dialog)
 
 
