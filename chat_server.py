@@ -21,7 +21,10 @@ class MainWindow(QtWidgets.QWidget):
 		self.INCOMMING_CALL = 'in_call'
 		self.ACCEPT_CALL = 'ac_call'
 		self.CANCEL_CALL = 'ce_call'
+		self.CLOSE_CALL = 'cl_call'
 		self.SET_LADDR = 's_laddr'
+		self.CONNECT_TO_AUDIO_CHAT = 'conn_audio'
+		self.DISCONNECT_FROM_AUDIO_CHAT = 'disc_audio'
 		self.HISTORY_REQUST = 'history_request'
 		self.ACTIVE_CLIENTS = 'active_clients'
 		self.MAX_MESSAGE_SIZE = 2048
@@ -35,15 +38,13 @@ class MainWindow(QtWidgets.QWidget):
 		self.signal = Communicate()
 		self.signal.new_mes.connect(self.new_mes)
 		
-		self.base_message_type = [self.CONNECT, self.DISCONNECT]
-		self.call_message_type = [self.INCOMMING_CALL, self.ACCEPT_CALL, self.CANCEL_CALL]
+		self.base_message_type = [self.CONNECT, self.DISCONNECT, self.CONNECT_TO_AUDIO_CHAT, \
+											self.DISCONNECT_FROM_AUDIO_CHAT]
+		self.call_message_type = [self.INCOMMING_CALL, self.ACCEPT_CALL, self.CANCEL_CALL, self.CLOSE_CALL]
 
 
 	def process_system_message(self, mtype, client_name, client_id, connection, raw_message):
 		if mtype == self.DISCONNECT:
-			# print(self.clients)
-			# print(connection)
-			# print(self.client_id_and_name)
 			self.client_id_and_name.pop(self.clients[connection])
 			self.clients_audio_addr.pop(self.clients[connection])
 			self.clients.pop(connection)
@@ -57,7 +58,8 @@ class MainWindow(QtWidgets.QWidget):
 			self.client_id_and_name[client_id] = client_name
 
 		elif mtype == self.SET_LADDR:
-			audio_socket_address = raw_message[-5:]
+			audio_socket_address = raw_message[0][-5:]
+			print(audio_socket_address)
 			self.clients_audio_addr[client_id] = audio_socket_address
 
 		elif mtype == self.HISTORY_REQUST:
@@ -100,7 +102,6 @@ class MainWindow(QtWidgets.QWidget):
 		mes = '†'.join(data)
 		message = f' |{client_ip}:{PORT}| {data[0]}'
 
-
 		if recipient == self.GLOBAL and mtype != self.HISTORY_REQUST:
 			self.message_list.append(f'{mtype}†{client_id}†{recipient}†{client_name}†{message}')
 
@@ -108,9 +109,9 @@ class MainWindow(QtWidgets.QWidget):
 			return self.message_constructor(mtype, client_id, recipient, client_name, '', message)
 
 		elif mtype in self.call_message_type:
-			for client, addr in self.clients_audio_addr.items():
+			for client, audio_addr in self.clients_audio_addr.items():
 				if client == client_id:
-					return self.message_constructor(mtype, client_id, recipient, client_name, '', addr)
+					return self.message_constructor(mtype, client_id, recipient, client_name, '', audio_addr)
 
 		elif mtype == self.MESSAGE:
 			return self.message_constructor(mtype, client_id, recipient, client_name, ' :: ', message)

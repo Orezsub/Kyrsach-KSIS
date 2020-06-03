@@ -4,16 +4,8 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from client_design import Ui_MainWindow  
 from os import path
 
-# import pyaudio
-# import wave
-# from array import array
-
 class Communicate(QObject):
 	new_message = pyqtSignal()
-	# new_audio = pyqtSignal()
-	# new_content = pyqtSignal()
-	# enable_button = pyqtSignal()
-	# show_message = pyqtSignal()
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -30,7 +22,11 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.INCOMMING_CALL = 'in_call'
 		self.ACCEPT_CALL = 'ac_call'
 		self.CANCEL_CALL = 'ce_call'
+		self.CLOSE_CALL = 'cl_call'
 		self.SET_LADDR = 's_laddr'
+		self.AUDIO_GLOBAL = 'globl'
+		self.CONNECT_TO_AUDIO_CHAT = 'conn_audio'
+		self.DISCONNECT_FROM_AUDIO_CHAT = 'disc_audio'
 		self.ARROW = '-->'
 		self.HISTORY = 'history'
 		self.HISTORY_START = 'history_start'
@@ -44,6 +40,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.clients = [self.GLOBAL]
 		self.dialog_button_dict = {}
 		self.message_list = []
+		self.audio_dialog_button_dict = {}
+		self.clients_id_and_name = {}
 
 		self.signal = Communicate()
 		self.signal.new_message.connect(self.new_message)
@@ -51,8 +49,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 		self.dialog_layout = self.set_layout_with_scroll_area(self.ui.verticalLayout, self.ui.scrollArea)
+		self.audio_layout = self.set_layout_with_scroll_area(self.ui.verticalLayout_2, self.ui.scrollArea_3)
 		self.find_server()
-		self.log_in()
+
 
 	def set_layout_with_scroll_area(self, ui_layout, ui_scroll_area):
 		layout = ui_layout
@@ -63,14 +62,15 @@ class MainWindow(QtWidgets.QMainWindow):
 		return layout
 
 
-	def add_button_into_layout(self, name, layout, button_dict, info, action, set_style=False):
+	def add_button_into_layout(self, name, layout, button_dict, info, action=None, set_style=False):
 		button = Qt.QPushButton(f'{name}')
 		if set_style:
 			button.setStyleSheet(f'background : {self.BASE_COLOR};')
 
 		layout.addWidget(button)
 		button_dict[button] = info
-		button.clicked.connect(action)
+		if action:
+			button.clicked.connect(action)
 
 		return button
 
@@ -83,6 +83,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 				self.change_dialog_button_color(button, self.BASE_COLOR)
 				self.display_all_messages_from_sender(address)
+				self.display_clients_in_audio_chat(address)
 				break
 
 
@@ -121,12 +122,12 @@ class MainWindow(QtWidgets.QMainWindow):
 				self.ui.TEdit_Chat_Text.append(message)
 
 
-	def del_dialog_button(self, address):
-		for but, addr in self.dialog_button_dict.items():
-			if address == addr:	
-				but.setParent(None)
-				del_but = but
-		self.dialog_button_dict.pop(del_but)				
+	def del_button_from_layuot(self, button_dict, address):
+		for button, addr in button_dict.items():
+			if address == addr:
+				button.setParent(None)
+				del_button = button
+		button_dict.pop(del_button)
 
 
 	def if_any_connect_or_disconnect(self, mtype, sender, client_name):
@@ -137,7 +138,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		elif mtype == self.DISCONNECT:
 			self.ui.ComboBox_Of_Clients.removeItem(self.clients.index(sender))
 			self.clients.remove(sender)
-			self.del_dialog_button(sender)
+			self.del_button_from_layuot(sender, self.dialog_button_dict)
 
 
 	def show_context_menu(self, name):
@@ -155,24 +156,33 @@ class MainWindow(QtWidgets.QMainWindow):
 
 		self.message_box.exec_()
 
+
 	def accept_incomming_call(self):
 		print('send')
 		self.shutdown_incomming_call = True
 		self.message_box.setParent(None)
-		self.send_message_to_server(self.ACCEPT_CALL, self.recipient_address, 'accepted call', False)
+		self.send_message_to_server(self.ACCEPT_CALL, self.called_client_address, 'accepted call', False)
 
-		# self.audio_socket = AudioSocketClient()
-		# self.audio_socket.set_host_and_port(self.host, self.port+1)
-		# self.audio_socket.create_socket()
-		self.audio_socket.set_audio_stream_in()
-		self.audio_socket.start_sending(self.incomming_addr)
-		self.audio_socket.start_receiving()
+		self.start_call(self.incomming_audio_addr, self.laddr)
 
 
 	def cancel_incomming_call(self):
 		self.shutdown_incomming_call = True
 		self.message_box.setParent(None)
 		self.send_message_to_server(self.CANCEL_CALL, self.recipient_address, 'canceled call', False)
+
+
+	def display_clients_in_audio_chat(self, recipient_address):
+		for button, _ in self.audio_dialog_button_dict.items():
+				button.setParent(None)
+		# self.audio_dialog_button_dict.clear()
+		if recipient_address == self.GLOBAL:
+			for client_id, name in self.clients_id_and_name.items():
+				self.add_button_into_layout(name, self.audio_layout, self.audio_dialog_button_dict, client_id)
+		else:
+			if self.called_client_address == self.recipient_address:
+				self.add_button_into_layout(self.name, self.audio_layout, self.audio_dialog_button_dict, self.name)
+				self.add_button_into_layout('name', self.audio_layout, self.audio_dialog_button_dict, self.called_client_address)
 
 
 	def display_all_messages_from_sender(self, recipient_address):
@@ -211,6 +221,13 @@ class MainWindow(QtWidgets.QMainWindow):
 				self.shutdown_incomming_call = True
 
 
+	def start_call(self, audio_address, laddr):
+		self.audio_socket.set_send_audio_stream()
+		self.audio_socket.set_recv_audio_stream()
+		self.audio_socket.start_sending(audio_address)
+		self.audio_socket.start_receiving(laddr)
+
+
 	def check_system_message(self, data):
 		if data[0] == self.HISTORY_START:
 			for i in reversed(range(len(self.message_list))):
@@ -232,6 +249,14 @@ class MainWindow(QtWidgets.QMainWindow):
 					but.click()
 			return True
 
+		elif data[0] == self.CONNECT_TO_AUDIO_CHAT:
+			self.add_button_into_layout(data[3], self.audio_layout, self.audio_dialog_button_dict, data[1])
+			self.clients_id_and_name[data[1]] = data[3]
+
+		elif data[0] == self.DISCONNECT_FROM_AUDIO_CHAT:
+			self.del_button_from_layuot(self.audio_dialog_button_dict, data[1])
+			self.clients_id_and_name.pop(data[1])
+
 		elif data[0] == self.ACTIVE_CLIENTS:
 			if len(data) != 2:
 				for i in range(1,len(data),2):
@@ -244,7 +269,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def check_call_message(self, data):
 		if data[0] == self.INCOMMING_CALL:
-			self.incomming_addr = data[4][-7:-2]
+			self.called_client_address = data[1]
+			self.incomming_audio_addr = data[4]
 			self.shutdown_incomming_call = False
 			Thread_in_call = threading.Thread(target=self.thread_incomming_call, daemon = True)
 			Thread_in_call.start()
@@ -252,17 +278,18 @@ class MainWindow(QtWidgets.QMainWindow):
 			return True
 
 		elif data[0] == self.ACCEPT_CALL:
-			self.incomming_addr = data[4][-7:-2]
+			self.incomming_audio_addr = data[4]
+			self.called_client_address = data[1]
 
-			# self.audio_socket = AudioSocketClient()
-			# self.audio_socket.set_host_and_port(self.host, self.port+1)
-			# self.audio_socket.create_socket()
-			self.audio_socket.set_audio_stream_in()
-			self.audio_socket.start_sending(self.incomming_addr)
-			self.audio_socket.start_receiving()
+			self.start_call(self.incomming_audio_addr, self.laddr)
 			return True
 
 		elif data[0] == self.CANCEL_CALL:
+			return True
+
+		elif data[0] == self.CLOSE_CALL:
+			self.audio_socket.close_send_and_recv_stream()
+			self.called_client_address = None
 			return True
 
 		return False
@@ -314,17 +341,17 @@ class MainWindow(QtWidgets.QMainWindow):
 		try:
 			self.host = self.ui.Edit_IP.text()
 			self.port = int(self.ui.Edit_Port.text())
+			self.name = self.ui.Edit_Name.text()
 
 			self.TCP_socket.set_host_and_port(self.host, self.port)
-			self.TCP_socket.set_client_name(self.ui.Edit_Name.text())
+			self.TCP_socket.set_client_name(self.name)
 			self.TCP_socket.connect()
 
 			self.audio_socket = AudioSocketClient()
 			self.audio_socket.set_host_and_port(self.host, self.port+1)
 			self.audio_socket.create_socket()
-			laddr = str(self.audio_socket.get_laddr())
-			# self.audio_socket.start_sending('00000')
-			self.send_message_to_server(self.SET_LADDR, self.GLOBAL, laddr, False)
+			self.laddr = str(self.audio_socket.get_laddr())
+			self.send_message_to_server(self.SET_LADDR, self.GLOBAL, self.laddr, False)
 
 			self.add_dialog_button_if_no_such(self.GLOBAL, self.GLOBAL)
 
@@ -344,7 +371,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.send_message_to_server(self.MESSAGE, self.recipient_address, message, True)
 
 
-	def send_message_to_server(self, mtype, recipient, message, print_message):#, content='†'):
+	def send_message_to_server(self, mtype, recipient, message, print_message):
 		time_now = strftime("%H:%M:%S %d-%m-%Y", gmtime())
 		mes = f' |{time_now}| {message}'
 
@@ -381,7 +408,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def close_all_dialogs(self):
 		for dialog, addr in self.dialog_button_dict.items():
-			dialog.setParent(None)	
+			dialog.setParent(None)
 		self.dialog_button_dict.clear()
 
 
@@ -390,45 +417,33 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.script_for_mas_os()
 
 
-	# def enable_button(self):
-	# 	self.ui.Btn_Send_Message.setDisabled(False)
-
-
-	# def upload_file_thread(self, name, file_path):
-	# 	if file_path:
-	# 		file_basename = self.get_basename(file_path)
-	# 		response = self.HTTP_client.upload_file(file_path)
-	# 		if self.check_errors_in_response(response):
-
-	# 			self.content_info = [file_basename, self.upload_file_layout, \
-	# 												self.upload_files_button_dict, response[2], self.delete_upload_file]
-	# 			self.signal.new_content.emit()
-
-	# 			self.upload_file_list.append([response[2], file_basename])
-
-	# 	self.signal.enable_button.emit()
-
-
 	def call_recipient_button_click(self):
-		
+		self.called_client_address = self.recipient_address
 		if self.recipient_address != self.GLOBAL:
-			self.send_message_to_server(self.INCOMMING_CALL, self.recipient_address, 'incomming call', False)
-
+			self.send_message_to_server(self.INCOMMING_CALL, self.called_client_address, 'incomming call', False)
+		else:
+			self.start_call(self.AUDIO_GLOBAL, self.AUDIO_GLOBAL)
+			self.clients_id_and_name[self.name] = self.name
+			self.add_button_into_layout(self.name, self.audio_layout, self.audio_dialog_button_dict, self.name)
+			self.send_message_to_server(self.CONNECT_TO_AUDIO_CHAT, self.GLOBAL, 'connect to global audio chat', False)
 
 	def mute_mic_button_click(self):
-		# self.audio_socket = AudioSocketClient()
-		# self.audio_socket.set_audio_stream_in()
-		# self.audio_socket.set_host_and_port(self.host, self.port+1)
-		# self.audio_socket.create_socket()
-		# self.audio_socket.start_sending('00000')
-		# self.audio_socket.start_receiving()
-		pass
-		# audio = AudioSocketClient()
-		# audio.set_host_and_port('192.168.100.2', 50008)
-		# audio.create_socket()
-		# audio.start_sending('00000')
-		# self.audio_socket.start_sending('00000')
+		self.audio_socket.pause_unpause_sending()
 
+
+	def mute_voise_button_click(self):
+		self.audio_socket.pause_unpause_receiving()
+
+
+	def close_call_button_click(self):
+		if self.called_client_address != self.GLOBAL:
+			self.send_message_to_server(self.CLOSE_CALL, self.called_client_address, 'close call', False)
+		else:
+			self.send_message_to_server(self.DISCONNECT_FROM_AUDIO_CHAT, self.GLOBAL, 'disconnect frm global audio chat', False)
+			self.clients_id_and_name.pop(self.name)
+			self.del_button_from_layuot(self.audio_dialog_button_dict, self.name)
+		self.audio_socket.close_send_and_recv_stream()
+		self.called_client_address = None
 
 	def change_active_dialog(self):
 		name = self.ui.ComboBox_Of_Clients.currentText()
@@ -442,8 +457,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.TCP_socket = socket
 
 
-	def set_audio_socket(self, audio_socket):
-		pass
+	# def set_audio_socket(self, audio_socket):
+	# 	pass
 		# self.audio_socket = AudioSocketClient()
 
 
@@ -475,8 +490,8 @@ if __name__ == "__main__":
 	TCP_socket = TCPConnection(application.signal.new_message)
 	application.set_TCP_socket(TCP_socket)
 
-	audio_socket = AudioSocketClient()
-	application.set_audio_socket(audio_socket)
+	# audio_socket = AudioSocketClient()
+	# application.set_audio_socket(audio_socket)
 
 	application.ui.Btn_Find_Server.clicked.connect(application.find_server)
 	application.ui.Btn_Log_In.clicked.connect(application.log_in)
@@ -485,6 +500,8 @@ if __name__ == "__main__":
 	application.ui.Btn_History_Request.clicked.connect(application.history_request)
 	application.ui.Btn_Call.clicked.connect(application.call_recipient_button_click)
 	application.ui.Btn_Mute_Mic.clicked.connect(application.mute_mic_button_click)
+	application.ui.Btn_Mute_Voise.clicked.connect(application.mute_voise_button_click)
+	application.ui.Btn_Close_Call.clicked.connect(application.close_call_button_click)
 	application.ui.ComboBox_Of_Clients.currentIndexChanged.connect(application.change_active_dialog)
 
 

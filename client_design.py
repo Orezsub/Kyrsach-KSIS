@@ -91,7 +91,7 @@ class Ui_MainWindow(object):
         self.Btn_Log_Out.setObjectName("Btn_Log_Out")
         self.horizontalLayout_2.addWidget(self.Btn_Log_Out)
         self.Btn_Call = QtWidgets.QPushButton(self.centralwidget)
-        self.Btn_Call.setGeometry(QtCore.QRect(650, 310, 151, 31))
+        self.Btn_Call.setGeometry(QtCore.QRect(650, 310, 76, 31))
         self.Btn_Call.setObjectName("Btn_Call")
         self.scrollArea_3 = QtWidgets.QScrollArea(self.centralwidget)
         self.scrollArea_3.setGeometry(QtCore.QRect(649, 29, 151, 251))
@@ -113,6 +113,9 @@ class Ui_MainWindow(object):
         self.Btn_Mute_Voise = QtWidgets.QPushButton(self.centralwidget)
         self.Btn_Mute_Voise.setGeometry(QtCore.QRect(725, 280, 76, 31))
         self.Btn_Mute_Voise.setObjectName("Btn_Mute_Voise")
+        self.Btn_Close_Call = QtWidgets.QPushButton(self.centralwidget)
+        self.Btn_Close_Call.setGeometry(QtCore.QRect(725, 310, 76, 31))
+        self.Btn_Close_Call.setObjectName("Btn_Close_Call")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -133,6 +136,7 @@ class Ui_MainWindow(object):
         self.Btn_Call.setText(_translate("MainWindow", "Call"))
         self.Btn_Mute_Mic.setText(_translate("MainWindow", "MIC"))
         self.Btn_Mute_Voise.setText(_translate("MainWindow", "VOISE"))
+        self.Btn_Close_Call.setText(_translate("MainWindow", "Close Call"))
 
 
 if __name__ == "__main__":

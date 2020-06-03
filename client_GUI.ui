@@ -233,7 +233,7 @@
      <rect>
       <x>650</x>
       <y>310</y>
-      <width>151</width>
+      <width>76</width>
       <height>31</height>
      </rect>
     </property>
@@ -299,6 +299,19 @@
     </property>
     <property name="text">
      <string>VOISE</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Btn_Close_Call">
+    <property name="geometry">
+     <rect>
+      <x>725</x>
+      <y>310</y>
+      <width>76</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Close Call</string>
     </property>
    </widget>
   </widget>

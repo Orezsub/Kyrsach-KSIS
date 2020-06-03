@@ -4,13 +4,16 @@ import wave
 import time
 import threading
 
-
 class AudioSocketServer(object):
     """docstring for AudioSocketServer"""
     def __init__(self, host, port):
-        # super().__init__()
         self.HOST = host
         self.PORT = port
+
+        self.AUDIO_GLOBAL = 'globl'
+        self.CONNECT = '00001'
+        self.DISCONNECT = '00000'
+
         self.CHUNK = 1024
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -19,7 +22,8 @@ class AudioSocketServer(object):
 
 
         self.clients = {}
-        self.incomming_addresses = []
+        self.active_clients = []
+        # self.incomming_addresses = []
         self.shutdown = False
 
         self.start_threading()
@@ -38,19 +42,34 @@ class AudioSocketServer(object):
                 while not self.shutdown:
                     data = connection.recv(self.CHUNK)
 
-                    recipient = data[:5]
+                    recipient = data[:5].decode()
 
                     if len(data) == 0:
                         print('e', self.shutdown)
                         self.del_connection_from_cliets_dict(connection)
                         break
 
-                    print(len(data), i, recipient)
+                    elif recipient == self.CONNECT:
+                        self.active_clients.append(str(address[1]))
+                        # self.del_connection_from_cliets_dict(connection)
+                        print('add connection', address)
+                        continue
+
+                    elif recipient == self.DISCONNECT:
+                        self.active_clients.remove(str(address[1]))
+                        # self.del_connection_from_cliets_dict(connection)
+                        print('del connection', address)
+                        continue
+
+                    print(len(data), i, recipient, self.active_clients)
                     i += 1
                     for client, addr in self.clients.items():
-                        if connection != client:# and addr == recipient:
-                            print('send to', addr)
-                            client.sendall(data)
+                        print(addr)
+                        if connection != client and addr in self.active_clients:
+                            print('lox')
+                            if addr == recipient or recipient == self.AUDIO_GLOBAL:
+                                print('send to', addr)
+                                client.sendall(data)
                 # break
             except ConnectionResetError:
                 print('error reset')
