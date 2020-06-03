@@ -41,9 +41,9 @@ class MainWindow(QtWidgets.QWidget):
 
 	def process_system_message(self, mtype, client_name, client_id, connection, raw_message):
 		if mtype == self.DISCONNECT:
-			print(self.clients)
-			print(connection)
-			print(self.client_id_and_name)
+			# print(self.clients)
+			# print(connection)
+			# print(self.client_id_and_name)
 			self.client_id_and_name.pop(self.clients[connection])
 			self.clients_audio_addr.pop(self.clients[connection])
 			self.clients.pop(connection)
@@ -142,7 +142,7 @@ class MainWindow(QtWidgets.QWidget):
 		while True:
 			connection, address = self.socket.accept()
 			self.clients[connection] = str(address[1])
-			print(self.clients, 'clients')
+			# print(self.clients, 'clients')
 
 
 	def start_threading(self):

@@ -8,10 +8,10 @@ import threading
 class AudioSocketServer(object):
     """docstring for AudioSocketServer"""
     def __init__(self, host, port):
-        super().__init__()
+        # super().__init__()
         self.HOST = host
         self.PORT = port
-        self.CHUNK = 1024*2*4
+        self.CHUNK = 1024
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server_socket.bind((self.HOST, self.PORT))
@@ -45,7 +45,7 @@ class AudioSocketServer(object):
                         self.del_connection_from_cliets_dict(connection)
                         break
 
-                    print(len(data), i)
+                    print(len(data), i, recipient)
                     i += 1
                     for client, addr in self.clients.items():
                         if connection != client:# and addr == recipient:
@@ -65,23 +65,24 @@ class AudioSocketServer(object):
 
 
     def thread_new_connection(self):
+        print('wait for connections')
         while True:
-            print('CONNECTED')
             connection, address = self.server_socket.accept()
+            print('CONNECTED from', str(address[1]))
             self.clients[connection] = str(address[1])
             self.start_audio_receiving(connection, address)
 
 
     def start_threading(self):
-        socket_thread = threading.Thread(target=self.thread_new_connection)
+        socket_thread = threading.Thread(target=self.thread_new_connection, daemon = True)
         socket_thread.start()
 
     def start_audio_receiving(self, connection, address):
         self.shutdown = False
         Thread_recv_TCP = threading.Thread(target=self.thread_audio_receiving,
-                                    args=(connection, address), daemon = True)
+                                    args=(connection, address))#, daemon = True)
         Thread_recv_TCP.start()
 
 if __name__ == '__main__':
-    audio_server = AudioSocketServer()
-    audio_server.start_threading()
+    audio_server = AudioSocketServer('192.168.100.2', 50008)
+    # audio_server.start_threading()

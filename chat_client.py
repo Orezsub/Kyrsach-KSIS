@@ -160,7 +160,11 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.shutdown_incomming_call = True
 		self.message_box.setParent(None)
 		self.send_message_to_server(self.ACCEPT_CALL, self.recipient_address, 'accepted call', False)
-		
+
+		# self.audio_socket = AudioSocketClient()
+		# self.audio_socket.set_host_and_port(self.host, self.port+1)
+		# self.audio_socket.create_socket()
+		self.audio_socket.set_audio_stream_in()
 		self.audio_socket.start_sending(self.incomming_addr)
 		self.audio_socket.start_receiving()
 
@@ -240,7 +244,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def check_call_message(self, data):
 		if data[0] == self.INCOMMING_CALL:
-			self.incomming_addr = data[4]
+			self.incomming_addr = data[4][-7:-2]
 			self.shutdown_incomming_call = False
 			Thread_in_call = threading.Thread(target=self.thread_incomming_call, daemon = True)
 			Thread_in_call.start()
@@ -248,7 +252,12 @@ class MainWindow(QtWidgets.QMainWindow):
 			return True
 
 		elif data[0] == self.ACCEPT_CALL:
-			self.incomming_addr = data[4]
+			self.incomming_addr = data[4][-7:-2]
+
+			# self.audio_socket = AudioSocketClient()
+			# self.audio_socket.set_host_and_port(self.host, self.port+1)
+			# self.audio_socket.create_socket()
+			self.audio_socket.set_audio_stream_in()
 			self.audio_socket.start_sending(self.incomming_addr)
 			self.audio_socket.start_receiving()
 			return True
@@ -310,10 +319,12 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.TCP_socket.set_client_name(self.ui.Edit_Name.text())
 			self.TCP_socket.connect()
 
+			self.audio_socket = AudioSocketClient()
 			self.audio_socket.set_host_and_port(self.host, self.port+1)
 			self.audio_socket.create_socket()
-			laddr = self.audio_socket.get_laddr()
-			self.send_message_to_server(self.SET_LADDR, self.GLOBAL, str(laddr), False)
+			laddr = str(self.audio_socket.get_laddr())
+			# self.audio_socket.start_sending('00000')
+			self.send_message_to_server(self.SET_LADDR, self.GLOBAL, laddr, False)
 
 			self.add_dialog_button_if_no_such(self.GLOBAL, self.GLOBAL)
 
@@ -361,10 +372,6 @@ class MainWindow(QtWidgets.QMainWindow):
 			del self.clients[i]
 		self.message_list.clear()
 
-		# for button, file_id in self.download_files_button_dict.items():
-		# 	button.setParent(None)
-		# self.download_files_button_dict.clear()
-		# self.download_file_list.clear()
 		self.script_for_mas_os()
 
 
@@ -408,6 +415,21 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.send_message_to_server(self.INCOMMING_CALL, self.recipient_address, 'incomming call', False)
 
 
+	def mute_mic_button_click(self):
+		# self.audio_socket = AudioSocketClient()
+		# self.audio_socket.set_audio_stream_in()
+		# self.audio_socket.set_host_and_port(self.host, self.port+1)
+		# self.audio_socket.create_socket()
+		# self.audio_socket.start_sending('00000')
+		# self.audio_socket.start_receiving()
+		pass
+		# audio = AudioSocketClient()
+		# audio.set_host_and_port('192.168.100.2', 50008)
+		# audio.create_socket()
+		# audio.start_sending('00000')
+		# self.audio_socket.start_sending('00000')
+
+
 	def change_active_dialog(self):
 		name = self.ui.ComboBox_Of_Clients.currentText()
 		address = self.clients[self.ui.ComboBox_Of_Clients.currentIndex()]
@@ -421,7 +443,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 	def set_audio_socket(self, audio_socket):
-		self.audio_socket = audio_socket
+		pass
+		# self.audio_socket = AudioSocketClient()
 
 
 	def script_for_mas_os(self):
@@ -460,7 +483,8 @@ if __name__ == "__main__":
 	application.ui.Btn_Send_Message.clicked.connect(application.prepare_and_send_message)
 	application.ui.Btn_Log_Out.clicked.connect(application.log_out)
 	application.ui.Btn_History_Request.clicked.connect(application.history_request)
-	application.ui.Btn_Upload_File.clicked.connect(application.call_recipient_button_click)
+	application.ui.Btn_Call.clicked.connect(application.call_recipient_button_click)
+	application.ui.Btn_Mute_Mic.clicked.connect(application.mute_mic_button_click)
 	application.ui.ComboBox_Of_Clients.currentIndexChanged.connect(application.change_active_dialog)
 
 

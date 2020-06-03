@@ -40,7 +40,7 @@
       <x>130</x>
       <y>30</y>
       <width>521</width>
-      <height>251</height>
+      <height>281</height>
      </rect>
     </property>
     <property name="readOnly">
@@ -130,46 +130,6 @@
       <string>Global</string>
      </property>
     </item>
-   </widget>
-   <widget class="QScrollArea" name="scrollArea_2">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>279</y>
-      <width>521</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="verticalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
-    </property>
-    <property name="horizontalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
-    </property>
-    <property name="widgetResizable">
-     <bool>true</bool>
-    </property>
-    <widget class="QWidget" name="scrollAreaWidgetContents_2">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>519</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <widget class="QWidget" name="horizontalLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>521</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout"/>
-     </widget>
-    </widget>
    </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
@@ -268,7 +228,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="Btn_Upload_File">
+   <widget class="QPushButton" name="Btn_Call">
     <property name="geometry">
      <rect>
       <x>650</x>
@@ -278,7 +238,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Upload</string>
+     <string>Call</string>
     </property>
    </widget>
    <widget class="QScrollArea" name="scrollArea_3">
@@ -287,7 +247,7 @@
       <x>649</x>
       <y>29</y>
       <width>151</width>
-      <height>281</height>
+      <height>251</height>
      </rect>
     </property>
     <property name="widgetResizable">
@@ -299,7 +259,7 @@
        <x>0</x>
        <y>0</y>
        <width>149</width>
-       <height>279</height>
+       <height>249</height>
       </rect>
      </property>
      <widget class="QWidget" name="verticalLayoutWidget_2">
@@ -308,12 +268,38 @@
         <x>0</x>
         <y>0</y>
         <width>151</width>
-        <height>281</height>
+        <height>251</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2"/>
      </widget>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="Btn_Mute_Mic">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>280</y>
+      <width>76</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>MIC</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Btn_Mute_Voise">
+    <property name="geometry">
+     <rect>
+      <x>725</x>
+      <y>280</y>
+      <width>76</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>VOISE</string>
+    </property>
    </widget>
   </widget>
  </widget>
