@@ -18,6 +18,9 @@ class AudioSocketClient(object):
         self.CONNECT = '00001'
         self.DISCONNECT = '00000'
 
+        self.mute_mic = False
+        self.mute_voise = False
+
 
     def set_send_audio_stream(self):
         self.send_audio_stream = self.pyaudio.open(format=self.FORMAT,
@@ -55,36 +58,43 @@ class AudioSocketClient(object):
 
 
     def thread_for_send(self, name, recipient):
-        self.send_code(self.CONNECT)
+        self.set_send_audio_stream()
+        # self.send_code(self.CONNECT)
         self.send_audio_stream.start_stream()
         while not self.shutdown_send_thread:
-            # try:
-            while not self.shutdown_send_thread:
-                data  = self.send_audio_stream.read(int(self.CHUNK/2))
-                dataChunk = array('h', data)
-                vol = max(dataChunk)
-                if(vol > 500):
-                    print("Recording Sound...", len(data), len(recipient.encode()))
-                    self.audio_socket.sendall(recipient.encode()+data[:len(data)-5])
-                else:
-                    pass
-                    # print("Silence..")
-            # except:
+            try:
+                while not self.shutdown_send_thread:
+                    data  = self.send_audio_stream.read(int(self.CHUNK))
+                    dataChunk = array('h', data)
+                    vol = max(dataChunk)
+                    if(vol > 500):
+                        print("Recording Sound...", len(data), len(recipient.encode()))
+                        # self.audio_socket.sendall(data)
+                        self.audio_socket.sendall(recipient.encode()+data[:len(data)-5])
+                    else:
+                        pass
+                        # print("Silence..")
+            except socket.timeout:
+                print('timeout')
+                continue
+
             self.close_send_stream()
 
 
     def start_sending(self, recipient):
+        self.recipient = recipient
         print("*sending")
         self.shutdown_send_thread = False
-        audio_send_thread = threading.Thread(target=self.thread_for_send, args=('send', recipient), daemon = True)
+        audio_send_thread = threading.Thread(target=self.thread_for_send, args=('send', self.recipient), daemon = True)
         audio_send_thread.start()
 
 
     def pause_unpause_sending(self):
-        if self.send_audio_stream.is_active():
-            self.send_audio_stream.stop_stream()
+        if not self.mute_mic:
+            self.shutdown_send_thread = True
         else:
-            self.send_audio_stream.start_stream()
+            self.start_sending(self.recipient)
+        self.mute_mic = not self.mute_mic
 
 
     def stop_sending(self):
@@ -97,40 +107,43 @@ class AudioSocketClient(object):
         self.send_audio_stream.close()
 
 
-    def thread_for_recv(self, name, default_recipient):
+    def thread_for_recv(self, name, default_sender):
+        self.set_recv_audio_stream()
         self.recv_audio_stream.start_stream()
         while not self.shutdown_recv_thread:
             try:
                 while not self.shutdown_recv_thread:
-                    data = self.audio_socket.recv(self.CHUNK)
-                    if len(data) == 0: self.shutdown_recv_thread = True
+                    data = self.audio_socket.recv(self.CHUNK*2)
 
-                    recipient = data[:5].decode()
+                    sernder = data[:5].decode()
                     data = data[5:]
-                    print(len(data), 'recv')
-                    if self.recv_audio_stream.is_active() and default_recipient == recipient:
+                    print(len(data), 'recv', sernder)
+                    if default_sender == sernder:
                         self.recv_audio_stream.write(data)
 
             except socket.timeout:
-                print('error')
+                print('error audio')
+                continue
+            except UnicodeDecodeError:
+                continue
 
-            if self.shutdown_recv_thread:
-                self.close_recv_stream()
-                self.send_code(self.DISCONNECT)
+            self.close_recv_stream()
 
 
-    def start_receiving(self, recipient):
+    def start_receiving(self, sender):
         print("*receiving")
+        self.sender = sender
         self.shutdown_recv_thread = False
-        audio_recv_thread = threading.Thread(target=self.thread_for_recv, args=('recv', recipient), daemon = True)
+        audio_recv_thread = threading.Thread(target=self.thread_for_recv, args=('recv', self.sender), daemon = True)
         audio_recv_thread.start()
 
 
     def pause_unpause_receiving(self):
-        if self.recv_audio_stream.is_active():
-            self.recv_audio_stream.stop_stream()
+        if not self.mute_voise:
+            self.shutdown_recv_thread = True
         else:
-            self.recv_audio_stream.start_stream()
+            self.start_receiving(self.sender)
+        self.mute_voise = not self.mute_voise
 
 
     def stop_receiving(self):
@@ -154,20 +167,3 @@ class AudioSocketClient(object):
         self.audio_socket.close()
         print("*closed")
 
-# if __name__ == '__main__':
-#     audio = AudioSocketClient()
-#     audio.set_host_and_port('192.168.100.2', 50008)
-#     audio.create_socket()
-#     audio.start_sending('00000')
-#     # audio.start_receiving()
-
-#     while True:
-#         a = input()
-#         # if a == 'p':
-#         #     audio.pause_sending()
-#         # elif a == 'u':
-#         #     audio.unpause_sending()
-#         # elif a == 's':
-#         #     audio.pause_receiving()
-#         # elif a == 'a':
-#         #     audio.unpause_receiving()

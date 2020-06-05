@@ -27,6 +27,9 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.AUDIO_GLOBAL = 'globl'
 		self.CONNECT_TO_AUDIO_CHAT = 'conn_audio'
 		self.DISCONNECT_FROM_AUDIO_CHAT = 'disc_audio'
+		self.RECV_ADDR = 'recv_addr'
+		self.SEND_ADDR = 'send_addr'
+		self.CLOSE_ADDR = 'clos_addr'
 		self.ARROW = '-->'
 		self.HISTORY = 'history'
 		self.HISTORY_START = 'history_start'
@@ -47,6 +50,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.signal.new_message.connect(self.new_message)
 		self.recipient_address = self.GLOBAL
 
+		self.called_client_address = None
+		self.active_video_call = False
 
 		self.dialog_layout = self.set_layout_with_scroll_area(self.ui.verticalLayout, self.ui.scrollArea)
 		self.audio_layout = self.set_layout_with_scroll_area(self.ui.verticalLayout_2, self.ui.scrollArea_3)
@@ -175,7 +180,6 @@ class MainWindow(QtWidgets.QMainWindow):
 	def display_clients_in_audio_chat(self, recipient_address):
 		for button, _ in self.audio_dialog_button_dict.items():
 				button.setParent(None)
-		# self.audio_dialog_button_dict.clear()
 		if recipient_address == self.GLOBAL:
 			for client_id, name in self.clients_id_and_name.items():
 				self.add_button_into_layout(name, self.audio_layout, self.audio_dialog_button_dict, client_id)
@@ -222,7 +226,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 	def start_call(self, audio_address, laddr):
-		self.audio_socket.set_send_audio_stream()
+		# self.audio_socket.set_send_audio_stream()
 		self.audio_socket.set_recv_audio_stream()
 		self.audio_socket.start_sending(audio_address)
 		self.audio_socket.start_receiving(laddr)
@@ -292,6 +296,33 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.called_client_address = None
 			return True
 
+		elif data[0] == self.RECV_ADDR:
+			recv_ip = self.video_socket.get_recv_ip()
+			recv_port = self.video_socket.get_recv_port()
+			self.send_message_to_server(self.SEND_ADDR, data[1], f'${recv_ip}${recv_port}$', False)
+
+			self.video_socket.show()
+			info = data[4].split('$')
+			self.send_ip, self.send_port = info[1], info[2]
+			print(self.send_ip, self.send_port)
+			self.video_socket.set_send_socket(self.send_ip, self.send_port)
+			self.video_socket.start_image_sending()
+			self.active_video_call = True
+			return True
+
+		elif data[0] == self.SEND_ADDR:
+			self.video_socket.show()
+			info = data[4].split('$')
+			self.send_ip, self.send_port = info[1], info[2]
+			print(self.send_ip, self.send_port)
+			self.video_socket.set_send_socket(self.send_ip, self.send_port)
+			self.video_socket.start_image_sending()
+			return True
+
+		elif data[0] == self.CLOSE_ADDR:
+			self.video_socket.close_socket()
+			return True
+
 		return False
 
 
@@ -338,29 +369,33 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 	def log_in(self):
-		try:
-			self.host = self.ui.Edit_IP.text()
-			self.port = int(self.ui.Edit_Port.text())
-			self.name = self.ui.Edit_Name.text()
+		# try:
+		self.host = self.ui.Edit_IP.text()
+		self.port = int(self.ui.Edit_Port.text())
+		self.name = self.ui.Edit_Name.text()
 
-			self.TCP_socket.set_host_and_port(self.host, self.port)
-			self.TCP_socket.set_client_name(self.name)
-			self.TCP_socket.connect()
+		self.TCP_socket.set_host_and_port(self.host, self.port)
+		self.TCP_socket.set_client_name(self.name)
+		self.TCP_socket.connect()
 
-			self.audio_socket = AudioSocketClient()
-			self.audio_socket.set_host_and_port(self.host, self.port+1)
-			self.audio_socket.create_socket()
-			self.laddr = str(self.audio_socket.get_laddr())
-			self.send_message_to_server(self.SET_LADDR, self.GLOBAL, self.laddr, False)
+		self.audio_socket = AudioSocketClient()
+		self.audio_socket.set_host_and_port(self.host, self.port+1)
+		self.audio_socket.create_socket()
+		self.laddr = str(self.audio_socket.get_laddr())
+		self.send_message_to_server(self.SET_LADDR, self.GLOBAL, self.laddr, False)
 
-			self.add_dialog_button_if_no_such(self.GLOBAL, self.GLOBAL)
+		self.video_socket = VideoSocket()
+		# self.video_socket.bind_recv_socket()
+		self.video_socket.setWindowTitle(self.name)
 
-			self.ui.Btn_Log_In.setDisabled(True)
-			self.ui.Btn_Log_Out.setDisabled(False)
-			self.ui.Btn_Send_Message.setDisabled(False)
-			self.ui.Btn_History_Request.setDisabled(False)
-		except:
-			pass
+		self.add_dialog_button_if_no_such(self.GLOBAL, self.GLOBAL)
+
+		self.ui.Btn_Log_In.setDisabled(True)
+		self.ui.Btn_Log_Out.setDisabled(False)
+		self.ui.Btn_Send_Message.setDisabled(False)
+		self.ui.Btn_History_Request.setDisabled(False)
+		# except:
+		# 	pass
 		self.script_for_mas_os()
 
 
@@ -445,6 +480,20 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.audio_socket.close_send_and_recv_stream()
 		self.called_client_address = None
 
+
+	def video_button_click(self):
+		if not self.active_video_call:
+			if self.recipient_address != self.GLOBAL:
+				recv_ip = self.video_socket.get_recv_ip()
+				recv_port = self.video_socket.get_recv_port()
+				self.send_message_to_server(self.RECV_ADDR, self.recipient_address, f'${recv_ip}${recv_port}$', False)
+				self.video_client_address = self.recipient_address
+		else:
+			self.video_socket.close_socket()
+			self.send_message_to_server(self.CLOSE_ADDR, self.video_client_address, 'close video call', False)
+		self.active_video_call = not self.active_video_call
+		# self.video_socket.start_image_sending()
+
 	def change_active_dialog(self):
 		name = self.ui.ComboBox_Of_Clients.currentText()
 		address = self.clients[self.ui.ComboBox_Of_Clients.currentIndex()]
@@ -469,6 +518,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def closeEvent(self, event): 
 		self.close_connection()
+		self.video_socket.close()
 
 
 if __name__ == "__main__":
@@ -479,6 +529,7 @@ if __name__ == "__main__":
 	from UDPConnection import UDPConnection
 	from TCPConnection import TCPConnection
 	from AudioClient import AudioSocketClient
+	from VideoClient import VideoSocket
 	from time import gmtime, strftime
 	from playsound import playsound
 
@@ -502,8 +553,10 @@ if __name__ == "__main__":
 	application.ui.Btn_Mute_Mic.clicked.connect(application.mute_mic_button_click)
 	application.ui.Btn_Mute_Voise.clicked.connect(application.mute_voise_button_click)
 	application.ui.Btn_Close_Call.clicked.connect(application.close_call_button_click)
+	application.ui.Btn_Video.clicked.connect(application.video_button_click)
 	application.ui.ComboBox_Of_Clients.currentIndexChanged.connect(application.change_active_dialog)
 
+	# video_socket = VideoSocket()
+	# video_socket.show()
 
 	sys.exit(app.exec_())
-	

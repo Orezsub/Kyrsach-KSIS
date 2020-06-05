@@ -25,6 +25,9 @@ class MainWindow(QtWidgets.QWidget):
 		self.SET_LADDR = 's_laddr'
 		self.CONNECT_TO_AUDIO_CHAT = 'conn_audio'
 		self.DISCONNECT_FROM_AUDIO_CHAT = 'disc_audio'
+		self.RECV_ADDR = 'recv_addr'
+		self.SEND_ADDR = 'send_addr'
+		self.CLOSE_ADDR = 'clos_addr'
 		self.HISTORY_REQUST = 'history_request'
 		self.ACTIVE_CLIENTS = 'active_clients'
 		self.MAX_MESSAGE_SIZE = 2048
@@ -39,7 +42,7 @@ class MainWindow(QtWidgets.QWidget):
 		self.signal.new_mes.connect(self.new_mes)
 		
 		self.base_message_type = [self.CONNECT, self.DISCONNECT, self.CONNECT_TO_AUDIO_CHAT, \
-											self.DISCONNECT_FROM_AUDIO_CHAT]
+											self.DISCONNECT_FROM_AUDIO_CHAT, self.RECV_ADDR, self.SEND_ADDR, self.CLOSE_ADDR]
 		self.call_message_type = [self.INCOMMING_CALL, self.ACCEPT_CALL, self.CANCEL_CALL, self.CLOSE_CALL]
 
 

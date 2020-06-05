@@ -247,7 +247,7 @@
       <x>649</x>
       <y>29</y>
       <width>151</width>
-      <height>251</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="widgetResizable">
@@ -259,7 +259,7 @@
        <x>0</x>
        <y>0</y>
        <width>149</width>
-       <height>249</height>
+       <height>229</height>
       </rect>
      </property>
      <widget class="QWidget" name="verticalLayoutWidget_2">
@@ -268,7 +268,7 @@
         <x>0</x>
         <y>0</y>
         <width>151</width>
-        <height>251</height>
+        <height>231</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -312,6 +312,19 @@
     </property>
     <property name="text">
      <string>Close Call</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Btn_Video">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>260</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Video</string>
     </property>
    </widget>
   </widget>

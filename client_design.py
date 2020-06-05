@@ -94,14 +94,14 @@ class Ui_MainWindow(object):
         self.Btn_Call.setGeometry(QtCore.QRect(650, 310, 76, 31))
         self.Btn_Call.setObjectName("Btn_Call")
         self.scrollArea_3 = QtWidgets.QScrollArea(self.centralwidget)
-        self.scrollArea_3.setGeometry(QtCore.QRect(649, 29, 151, 251))
+        self.scrollArea_3.setGeometry(QtCore.QRect(649, 29, 151, 231))
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollArea_3.setObjectName("scrollArea_3")
         self.scrollAreaWidgetContents_3 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 149, 249))
+        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 149, 229))
         self.scrollAreaWidgetContents_3.setObjectName("scrollAreaWidgetContents_3")
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.scrollAreaWidgetContents_3)
-        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(0, 0, 151, 251))
+        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(0, 0, 151, 231))
         self.verticalLayoutWidget_2.setObjectName("verticalLayoutWidget_2")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
@@ -116,6 +116,9 @@ class Ui_MainWindow(object):
         self.Btn_Close_Call = QtWidgets.QPushButton(self.centralwidget)
         self.Btn_Close_Call.setGeometry(QtCore.QRect(725, 310, 76, 31))
         self.Btn_Close_Call.setObjectName("Btn_Close_Call")
+        self.Btn_Video = QtWidgets.QPushButton(self.centralwidget)
+        self.Btn_Video.setGeometry(QtCore.QRect(650, 260, 151, 21))
+        self.Btn_Video.setObjectName("Btn_Video")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -137,6 +140,7 @@ class Ui_MainWindow(object):
         self.Btn_Mute_Mic.setText(_translate("MainWindow", "MIC"))
         self.Btn_Mute_Voise.setText(_translate("MainWindow", "VOISE"))
         self.Btn_Close_Call.setText(_translate("MainWindow", "Close Call"))
+        self.Btn_Video.setText(_translate("MainWindow", "Video"))
 
 
 if __name__ == "__main__":

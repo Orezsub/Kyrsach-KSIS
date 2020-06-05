@@ -40,7 +40,7 @@ class AudioSocketServer(object):
         while not self.shutdown:
             try:
                 while not self.shutdown:
-                    data = connection.recv(self.CHUNK)
+                    data = connection.recv(self.CHUNK*2)
 
                     recipient = data[:5].decode()
 
@@ -49,27 +49,23 @@ class AudioSocketServer(object):
                         self.del_connection_from_cliets_dict(connection)
                         break
 
-                    elif recipient == self.CONNECT:
-                        self.active_clients.append(str(address[1]))
-                        # self.del_connection_from_cliets_dict(connection)
-                        print('add connection', address)
-                        continue
+                    # elif recipient == self.CONNECT:
+                    #     self.active_clients.append(str(address[1]))
+                    #     print('add connection', address)
+                    #     continue
 
-                    elif recipient == self.DISCONNECT:
-                        self.active_clients.remove(str(address[1]))
-                        # self.del_connection_from_cliets_dict(connection)
-                        print('del connection', address)
-                        continue
-
+                    # elif recipient == self.DISCONNECT:
+                    #     self.active_clients.remove(str(address[1]))
+                    #     print('del connection', address)
+                        # continue
+                    # data = data[5:]
                     print(len(data), i, recipient, self.active_clients)
                     i += 1
                     for client, addr in self.clients.items():
-                        print(addr)
-                        if connection != client and addr in self.active_clients:
-                            print('lox')
-                            if addr == recipient or recipient == self.AUDIO_GLOBAL:
-                                print('send to', addr)
-                                client.sendall(data)
+                        if connection != client:# and addr in self.active_clients:
+                            # if addr == recipient or recipient == self.AUDIO_GLOBAL:
+                            print('send to', addr)
+                            client.sendall(data)
                 # break
             except ConnectionResetError:
                 print('error reset')
@@ -80,6 +76,9 @@ class AudioSocketServer(object):
                 print('error pipe')
                 self.del_connection_from_cliets_dict(connection)
                 break
+            except UnicodeDecodeError:
+                print('rrr')
+                continue
             break
 
 
